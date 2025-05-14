@@ -3,7 +3,7 @@ const axios = require("axios");
 // Функция для выполнения HTTP-запроса
 async function searchPeople(term) {
   try {
-    const response = await axios.get(`http://swapi.dev/api/people/?search= ${encodeURIComponent(term)}`);
+    const response = await axios.get(`http://swapi.tech/api/people/?search= ${encodeURIComponent(term)}`);
     return response.data.results; // Возвращает массив найденных персонажей
   } catch (error) {
     console.error(`Error searching for '${term}':`, error.message);
