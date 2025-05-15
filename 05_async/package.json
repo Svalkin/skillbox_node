@@ -36,7 +36,6 @@
             "npm run prettify"
         ]
     },
-
     "license": "Apache-2.0",
     "repository": {
         "type": "git",
@@ -48,7 +47,7 @@
     "homepage": "https://github.com/emirotin/node-template#readme",
     "dependencies": {
         "async": "^3.2.6",
-        "axios": "^0.21.4",
+        "axios": "^1.9.0",
         "husky": "^9.1.7"
     },
     "description": ""

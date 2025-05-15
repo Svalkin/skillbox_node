@@ -1,13 +1,32 @@
 const axios = require("axios");
 
 // Функция для выполнения HTTP-запроса
+async function getPersonDetails(url) {
+  try {
+    const response = await axios.get(url.trim());
+    return response.data.result?.properties || null;
+  } catch (error) {
+    console.error(`Error fetching details from ${url}:`, error.message);
+    return null;
+  }
+}
+
 async function searchPeople(term) {
   try {
-    const response = await axios.get(`http://swapi.tech/api/people/?search= ${encodeURIComponent(term)}`);
-    return response.data.results; // Возвращает массив найденных персонажей
+    const response = await axios.get(
+      `https://swapi.tech/api/people/?search= ${encodeURIComponent(term)}`
+    );
+
+    const characterPromises = response.data.results.map(async (person) => {
+      const properties = await getPersonDetails(person.url);
+      return { ...person, properties }; // Добавляем свойства к персонажу
+    });
+
+    const characters = await Promise.all(characterPromises);
+    return characters;
   } catch (error) {
     console.error(`Error searching for '${term}':`, error.message);
-    return []; // Возвращаем пустой массив при ошибке
+    return [];
   }
 }
 
@@ -19,32 +38,57 @@ async function performSearches(args) {
 }
 
 // Обработка результатов
-function displayResults(results, args) {
+function displayResults(results) {
+  // Убираем проверку на properties, если мы сами их добавляем
   if (results.length === 0) {
     console.warn("No results found.");
     return;
   }
 
-  // Сортируем персонажей по имени
-  const sortedCharacters = results.sort((a, b) => a.name.localeCompare(b.name));
+  // Фильтруем только тех, у кого есть рост
+  const validResults = results.filter((person) => person.properties?.height);
 
-  // Находим минимальный и максимальный рост
-  const heights = results.map((person) => parseInt(person.height));
+  if (validResults.length === 0) {
+    console.warn("No characters with height data found.");
+    return;
+  }
+
+  const heights = validResults.map((person) =>
+    parseInt(person.properties.height)
+  );
   const minHeight = Math.min(...heights);
   const maxHeight = Math.max(...heights);
 
+  // Сортируем по имени
+  const sortedCharacters = validResults.sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
   // Выводим результаты
-  console.log(`Total results: ${results.length}.`);
-  console.log(`All: ${sortedCharacters.map((person) => person.name).join(", ")}.`);
-  console.log(`Min height: ${results.find((person) => parseInt(person.height) === minHeight).name}, ${minHeight} cm.`);
-  console.log(`Max height: ${results.find((person) => parseInt(person.height) === maxHeight).name}, ${maxHeight} cm.`);
+  console.log(`Total results: ${validResults.length}.`);
+  console.log(
+    `All: ${sortedCharacters.map((person) => person.name).join(", ")}.`
+  );
+  console.log(
+    `Min height: ${
+      validResults.find(
+        (person) => parseInt(person.properties.height) === minHeight
+      ).name
+    }, ${minHeight} cm.`
+  );
+  console.log(
+    `Max height: ${
+      validResults.find(
+        (person) => parseInt(person.properties.height) === maxHeight
+      ).name
+    }, ${maxHeight} cm.`
+  );
 }
 
 // Главная функция
 (async () => {
   try {
     const args = process.argv.slice(2);
-    void args;
     if (args.length === 0) {
       console.warn("No search arguments provided. Exiting.");
       process.exit(1);
@@ -53,7 +97,8 @@ function displayResults(results, args) {
     console.log("Search terms:", args);
 
     const results = await performSearches(args);
-    displayResults(results, args);
+    console.log("Raw results:", results); // Для дебага
+    displayResults(results);
   } catch (error) {
     console.error("An unexpected error occurred:", error);
   }
