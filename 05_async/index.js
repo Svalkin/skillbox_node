@@ -13,17 +13,22 @@ async function getPersonDetails(url) {
 
 async function searchPeople(term) {
   try {
-    const response = await axios.get(
-      `https://swapi.tech/api/people/?search= ${encodeURIComponent(term)}`
-    );
-
-    const characterPromises = response.data.results.map(async (person) => {
-      const properties = await getPersonDetails(person.url);
-      return { ...person, properties }; // Добавляем свойства к персонажу
+    const response = await axios.get(`https://swapi.tech/api/people `, {
+      params: { name: term }
     });
 
-    const characters = await Promise.all(characterPromises);
-    return characters;
+    // Проверяем, есть ли result и это массив
+    const people = response.data?.result;
+    if (!people || !Array.isArray(people)) {
+      console.warn(`No characters found for term "${term}"`);
+      return [];
+    }
+
+    // Добавляем свойства на уровень персонажа (упрощает дальнейшую обработку)
+    return people.map((person) => ({
+      ...person,
+      properties: person.properties || {}
+    }));
   } catch (error) {
     console.error(`Error searching for '${term}':`, error.message);
     return [];
@@ -39,14 +44,15 @@ async function performSearches(args) {
 
 // Обработка результатов
 function displayResults(results) {
-  // Убираем проверку на properties, если мы сами их добавляем
   if (results.length === 0) {
     console.warn("No results found.");
     return;
   }
 
   // Фильтруем только тех, у кого есть рост
-  const validResults = results.filter((person) => person.properties?.height);
+  const validResults = results.filter(
+    (person) => person.properties && person.properties.height
+  );
 
   if (validResults.length === 0) {
     console.warn("No characters with height data found.");
@@ -61,26 +67,28 @@ function displayResults(results) {
 
   // Сортируем по имени
   const sortedCharacters = validResults.sort((a, b) =>
-    a.name.localeCompare(b.name)
+    a.properties.name.localeCompare(b.properties.name)
   );
 
   // Выводим результаты
   console.log(`Total results: ${validResults.length}.`);
   console.log(
-    `All: ${sortedCharacters.map((person) => person.name).join(", ")}.`
+    `All: ${sortedCharacters
+      .map((person) => person.properties.name)
+      .join(", ")}.`
   );
   console.log(
     `Min height: ${
       validResults.find(
         (person) => parseInt(person.properties.height) === minHeight
-      ).name
+      ).properties.name
     }, ${minHeight} cm.`
   );
   console.log(
     `Max height: ${
       validResults.find(
         (person) => parseInt(person.properties.height) === maxHeight
-      ).name
+      ).properties.name
     }, ${maxHeight} cm.`
   );
 }
