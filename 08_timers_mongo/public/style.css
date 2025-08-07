@@ -1,0 +1,20 @@
+.container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    font-family: sans-serif;
+  }
+  
+  input, button {
+    padding: 8px;
+    margin: 5px 0;
+    width: 100%;
+  }
+  
+  .error {
+    color: red;
+    background: #ffeaea;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }

@@ -1,0 +1,27 @@
+<!-- views/index.njk -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Таймеры</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Добро пожаловать, [[ user.username ]]!</h1>
+    <p><a href="/auth/logout">Выход</a></p>
+    <h2>Таймеры</h2>
+    <div id="timers"></div>
+  </div>
+
+  <script>
+    async function loadTimers() {
+      const res = await fetch("/api/timers");
+      const timers = await res.json();
+      document.getElementById("timers").innerHTML = timers.map(t => 
+        `<div>${t.name}: ${t.duration} мин</div>`
+      ).join("");
+    }
+    loadTimers();
+  </script>
+</body>
+</html>
