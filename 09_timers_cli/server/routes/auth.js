@@ -1,8 +1,8 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const { getDb } = require("../db");
-const { nanoid } = require("nanoid"); 
-const auth = require("../middleware/auth"); 
+const { nanoid } = require("nanoid");
+const auth = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -20,10 +20,10 @@ router.post("/signup", async (req, res) => {
     const hashed = await bcrypt.hash(password, 12);
     const result = await db.collection("users").insertOne({ username, password_hash: hashed });
 
-    const sessionId = nanoid(); // ✅ Работает, если nanoid@^3.3.7
+    const sessionId = nanoid();
     await db.collection("sessions").insertOne({
       sid: sessionId,
-      sess: { userId: result.insertedId },
+      sess: { userId: result.insertedId.toString() }, // ✅ Преобразуем в строку
       expire: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
 
@@ -45,7 +45,7 @@ router.post("/login", async (req, res) => {
       const sessionId = nanoid();
       await db.collection("sessions").insertOne({
         sid: sessionId,
-        sess: { userId: user._id },
+        sess: { userId: user._id.toString() }, // ✅ Преобразуем в строку
         expire: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       });
       return res.json({ sessionId });
@@ -59,7 +59,6 @@ router.post("/login", async (req, res) => {
 
 // Логаут
 router.post("/logout", auth, async (req, res) => {
-  // auth уже проверил сессию, req.user доступен
   const sessionId = req.headers["x-session-id"] || req.query.sessionId;
   const db = getDb();
 

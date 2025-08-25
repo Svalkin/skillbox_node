@@ -1,4 +1,5 @@
 const { getDb } = require("../db");
+const { ObjectId } = require("mongodb"); // ✅ Импортируем ObjectId
 
 module.exports = async (req, res, next) => {
   const sessionId = req.headers["x-session-id"] || req.query.sessionId;
@@ -10,12 +11,16 @@ module.exports = async (req, res, next) => {
   try {
     const db = getDb();
     const session = await db.collection("sessions").findOne({ sid: sessionId });
+
     if (!session || !session.sess?.userId) {
       return res.status(401).json({ error: "Invalid or expired session" });
     }
 
+    // ✅ Преобразуем строку в ObjectId
+    const userId = new ObjectId(session.sess.userId);
+
     const user = await db.collection("users").findOne(
-      { _id: session.sess.userId },
+      { _id: userId },
       { projection: { password_hash: 0 } }
     );
 
