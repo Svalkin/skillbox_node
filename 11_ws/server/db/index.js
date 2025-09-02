@@ -7,6 +7,10 @@ async function connect() {
   if (client) return db;
 
   const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error("MONGODB_URI is not set");
+  }
+
   client = new MongoClient(uri);
 
   try {
@@ -16,7 +20,7 @@ async function connect() {
     return db;
   } catch (err) {
     console.error("❌ Failed to connect to MongoDB", err);
-    process.exit(1);
+    throw err;
   }
 }
 
