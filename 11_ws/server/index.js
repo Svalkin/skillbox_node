@@ -1,4 +1,4 @@
-require("dotenv").config();
+equire("dotenv").config();
 const express = require("express");
 const { connect, getDb } = require("./db");
 const authRoutes = require("./routes/auth");
@@ -19,19 +19,14 @@ app.use("/api/timers", timersRoutes);
 // Порт
 const port = process.env.PORT || 3000;
 
-app.listen(port, () => {
-  console.log(`🚀 Server is running on http://localhost:${port}`);
-});
-
-// Подключение WebSocket
-const { setupWebSocket } = require("./ws-server");
+// Запускаем HTTP-сервер
 const server = app.listen(port, () => {
   console.log(`🚀 Server is running on http://localhost:${port}`);
 });
 
-// Запускаем WebSocket
-const clients = setupWebSocket(server);
+// Подключаем WebSocket к уже запущенному серверу
+const { setupWebSocket } = require("./ws-server");
+setupWebSocket(server);
 
-// После старта/остановки таймера — обновляем клиентов
-// В routes/timerRoutes.js после insert/update:
-// require("./ws-server").broadcastTimers(req.user._id.toString());
+// Экспортируем server (если нужно для тестов)
+module.exports = server;
