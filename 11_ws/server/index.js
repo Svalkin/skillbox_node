@@ -1,4 +1,4 @@
-equire("dotenv").config();
+require("dotenv").config();
 const express = require("express");
 const { connect, getDb } = require("./db");
 const authRoutes = require("./routes/auth");
