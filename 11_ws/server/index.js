@@ -6,10 +6,10 @@ const timersRoutes = require("./routes/timerRoutes");
 
 const app = express();
 
-// Подключаемся к MongoDB при старте
+// Подключаемся к MongoDB
 connect();
 
-// Парсинг JSON тел запросов
+// Парсинг JSON
 app.use(express.json());
 
 // Роуты
@@ -24,9 +24,6 @@ const server = app.listen(port, () => {
   console.log(`🚀 Server is running on http://localhost:${port}`);
 });
 
-// Подключаем WebSocket к уже запущенному серверу
+// Подключаем WebSocket
 const { setupWebSocket } = require("./ws-server");
 setupWebSocket(server);
-
-// Экспортируем server (если нужно для тестов)
-module.exports = server;
